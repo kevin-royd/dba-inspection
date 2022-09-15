@@ -9,6 +9,6 @@ def check_raid_all():
     disk_name = str(data).split(' ')[1].split(':')[0]
     # 磁盘只读检测
     cmd2 = f'badblocks -s -v {disk_name}'
-    bad = cmd_util.exec_cmd(cmd)
+    bad = cmd_util.exec_cmd(cmd2)
     if bad is None:
         print('没有坏道')
