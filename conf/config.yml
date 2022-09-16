@@ -1,3 +1,7 @@
+logger:
+  logfile: err.log
+  logpath: ../log/
+
 dba:
   hosts: 127.0.0.1
   user: root

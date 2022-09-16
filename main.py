@@ -1,6 +1,5 @@
 from raid import check_raid
 from centos import check_os
-from conf import logger
 
 if __name__ == '__main__':
     # 初始化日志文件

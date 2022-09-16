@@ -1,6 +1,4 @@
-import datetime
-from conf import logger
-from cmdUtile import cmd_util
+from cmdUtile import cmd_util, logger
 import re
 
 
