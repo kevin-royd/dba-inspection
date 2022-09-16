@@ -32,8 +32,3 @@ class Logger:
     def get_log(self):
         """定义一个函数，回调logger实例"""
         return self.logger
-
-
-if __name__ == '__main__':
-    log = Logger().get_log
-    log.error('test')
