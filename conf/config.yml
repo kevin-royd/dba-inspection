@@ -1,5 +1,6 @@
 logger:
   logfile: err.log
+  # 执行文件为main.py 所有目录层级为main.py开始
   logpath: ../log/
 
 dba:
@@ -7,4 +8,4 @@ dba:
   user: root
   passwd: root
   port: 3306
-  dbname: []
+  dbname: [ ]
