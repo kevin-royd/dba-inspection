@@ -3,7 +3,7 @@ import re
 
 
 def check_numa():
-    log = logger.logger_config('../log/err.log', 'check_numa')
+    log = logger.Logger.get_log()
     # 首先判断是否启动了numa
     cmd = 'dmesg | grep -i numa'
     message = cmd_util.exec_cmd(cmd)
@@ -20,7 +20,7 @@ def check_numa():
 
 # 通过判断swap空间大小来判断是否启用
 def check_swap():
-    log = logger.logger_config('../log/err.log', 'check_swap')
+    log = logger.Logger.get_log()
     cmd = "free -m | grep -i 'swap' | awk '{print $2}'"
     message = cmd_util.exec_cmd(cmd)
     # 对返回结果进行处理 b'0\n'
