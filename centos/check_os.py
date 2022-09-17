@@ -24,18 +24,23 @@ def check_numa():
                 # 需要重新读取配hi在
                 cmd_reload = 'grub2-mkconfig -o /boot/grub2/grub.cfg'
                 cmd_util.exec_cmd(cmd_reload)
-        print('numa关闭成功,重启机器生效')
+        else:
+            print('numa已关闭,重启机器生效')
+            # 需要重新读取配hi在
+            cmd_reload = 'grub2-mkconfig -o /boot/grub2/grub.cfg'
+            cmd_util.exec_cmd(cmd_reload)
     else:
         print('numa已关闭')
 
 
 # 通过判断swap空间大小来判断是否启用
 def check_swap():
-    log = logger.Logger.get_log()
+    log = logger.Logger().get_log
+
     cmd = "free -m | grep -i 'swap' | awk '{print $2}'"
     message = cmd_util.exec_cmd(cmd)
     # 对返回结果进行处理 b'0\n'
-    result = re.search('.*([0-9]+)', str(message)).group(1)
+    result = int(re.search('.*([0-9]+)', str(message)).group(1))
     if result != 0:
         print('未关闭swap。现在开始关闭swap')
         cmd_buffer = 'echo 3 > /proc/sys/vm/drop_caches'
@@ -48,4 +53,4 @@ def check_swap():
         message_buffer = cmd_util.exec_cmd(cmd_swap)
         if message_buffer is not None:
             log.error('关闭swap出错')
-        print('')
+    print('swap已关闭')
