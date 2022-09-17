@@ -10,7 +10,9 @@ class Raid(object):
         cmd = 'fdisk -l'
         data = cmd_util.exec_cmd(cmd)
         # 获取磁盘名称
-        self.disk_name = str(data).split(' ')[1].split(':')[0]
+        disk_name = str(data).split(' ')[1].split(':')[0]
+        print(disk_name)
+        self.disk_name = disk_name
         return self.disk_name
 
     # 检擦磁盘坏道

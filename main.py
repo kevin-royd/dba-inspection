@@ -5,7 +5,8 @@ if __name__ == '__main__':
     # 初始化日志文件
 
     # 检查磁盘
-    check_raid.check_raid_all()
+    # check_raid.check_raid_all()
 
     # 检查os
-    check_os.check_numa()
+    # check_os.check_numa()
+    check_os.CentOS().check_io_scheduler

@@ -13,7 +13,7 @@ class Logger:
 
         # 创建一个handler，用于写入日志文件
         # 执行文件为main.py 所有目录层级为main.py开始
-        with open('./conf/config.yml', 'r') as f:
+        with open('./conf/config.yml', 'r', encoding='utf-8') as f:
             yml_json = yaml.load(f.read(), Loader=yaml.Loader)
             logfile = yml_json['logger']['logfile']
             logpath = yml_json['logger']['logpath']
