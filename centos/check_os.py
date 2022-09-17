@@ -59,21 +59,23 @@ class CentOS(object):
         cmd_get_io_scheduler = f'cat /sys/block/{disk}/queue/scheduler'
         io_scheduler = os.popen(cmd_get_io_scheduler).readline()
         # 判断当前的io算法是否为noon或deadline
-        now_scheduler = re.search('([a-zA-Z]+)', io_scheduler.split(' ')[0]).group(1)
+        now_scheduler = re.search('([a-zA-Z-]+)', io_scheduler.split(' ')[0])[0]
         if now_scheduler == 'noop' or now_scheduler == 'mq-deadline' or now_scheduler == 'deadline':
-            # 检查是否持久化修改了
-            elevator = os.popen('grep elevator= /etc/default/grub').readline()
-            if elevator is None:
-                # io调度算法已修改但为持久化
-                cmd_add_scheduler = "sed -i 's#biosdevname=0#biosdevname=0 elevator=deadline'"
+            # 检查是否持久化修改了 返回值类型为str
+            elevator = os.popen('grep "elevator=" /etc/default/grub').readline()
+            if len(elevator) == 0:
+                # io调度算法已修改但未持久化
+                cmd_add_scheduler = "sed -i 's#biosdevname=0#biosdevname=0 elevator=deadline#' /etc/default/grub"
                 self.update_grub(cmd_add_scheduler)
+            else:
+                print('io调度算法配置文件已经修改')
         else:
             # 临时修改io调度算法，立即生效
             cmd_update_scheduler = f'echo mq-deadline > /sys/block/{disk}/queue/scheduler'
             echo_scheduler = cmd_util.exec_cmd(cmd_update_scheduler)
             if echo_scheduler is not None:
                 self.log.error('请检查文件是否存在：/etc/default/grub')
-            cmd_add_scheduler = "sed -i 's#biosdevname=0#biosdevname=0 elevator=deadline'"
+            cmd_add_scheduler = "sed -i 's#biosdevname=0#biosdevname=0 elevator=deadline#' /etc/default/grub"
             self.update_grub(cmd_add_scheduler)
 
     def update_grub(self, cmd):
