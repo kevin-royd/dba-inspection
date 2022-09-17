@@ -6,13 +6,13 @@ def check_numa():
     log = logger.Logger().get_log
     # 首先判断是否启动了numa
     cmd = 'dmesg | grep -i numa=off'
-    message = cmd_util.exec_cmd(cmd)
-    if message is not None:
+    message = cmd_util.exec_cmd(cmd)  # 管道符执行才会有结果输出
+    if message is None:
         # 判断内核文件是否已经添加了numa=off
-        cmd_grep_numa = 'grep "numa=off" /etc/default/grub'
-        exec_cmd_numa = cmd_util.exec_cmd(cmd_grep_numa)
+        cmd_grep_numa = 'cat /etc/default/grub | grep numa=off'
+        numa_message = cmd_util.exec_cmd(cmd_grep_numa)
         # 如果为空表示未修改
-        if exec_cmd_numa is None:
+        if numa_message is None:
             print('numa未关闭,执行修改内核参数')
             cmd_numa = "sed -i 's#biosdevname=0#biosdevname=0 numa=off#' /etc/default/grub"
             cmd_util.exec_cmd(cmd_numa)

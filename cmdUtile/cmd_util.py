@@ -11,8 +11,7 @@ def exec_cmd(cmd):
                 # 返回结果被byte
                 return result
             else:
-                print('命令执行失败。返回结果错误')
-                exit(0)
+                return None
 
     except:
         print('命令执行失败。返回结果错误')
