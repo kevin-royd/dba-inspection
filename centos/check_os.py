@@ -1,7 +1,7 @@
 from cmdUtile import cmd_util, logger
 from raid import check_raid
 import re
-from os import system
+import os
 
 
 class CentOS(object):
@@ -22,15 +22,7 @@ class CentOS(object):
             if numa_message is None:
                 print('numa未关闭,执行修改内核参数')
                 cmd_numa = "sed -i 's#biosdevname=0#biosdevname=0 numa=off#' /etc/default/grub"
-                cmd_util.exec_cmd(cmd_numa)
-                # 校验上条命令是否有报错 因为sed命令无返回结果。如果有返回肯定是错误信息
-                if cmd_util is not None:
-                    self.log.error('请检查文件是否存在：/etc/default/grub')
-                else:
-                    print('numa关闭成功,重启机器生效')
-                    # 需要重新读取配hi在
-                    cmd_reload = 'grub2-mkconfig -o /boot/grub2/grub.cfg'
-                    cmd_util.exec_cmd(cmd_reload)
+                self.update_grub(cmd_numa)
             else:
                 print('numa已关闭,重启机器生效')
                 # 需要重新读取配hi在
@@ -64,21 +56,30 @@ class CentOS(object):
         # 获取磁盘支持的io调度器和当前使用的调度器
         # 此时的disk_name为/dev 需要进行处理
         disk = re.search('/([0-9a-zA-z]+)$', self.disk_name).group(1)
-        print(disk)
         cmd_get_io_scheduler = f'cat /sys/block/{disk}/queue/scheduler'
-        io_scheduler = system(cmd_get_io_scheduler)
-        # 判断当前的io算法是否为noon或
+        io_scheduler = os.popen(cmd_get_io_scheduler).readline()
+        # 判断当前的io算法是否为noon或deadline
         now_scheduler = re.search('([a-zA-Z]+)', io_scheduler.split(' ')[0]).group(1)
-        if now_scheduler != 'noop' or now_scheduler != 'mq-deadlin' or now_scheduler != 'deadlin':
-            print('未设置io调度算法，设置为:mq-deadline')
-            system(f'echo mq-deadline > /sys/block/{disk}/queue/scheduler')
-            # 修改配置文件避免重启失效
-            cmd_add_scheduler = "sed -i 's#biosdevname=0#biosdevname=0 elevator=deadline'"
-            message_scheduler = cmd_util.exec_cmd(cmd_add_scheduler)
-            if message_scheduler is not None:
-                self.log.error('请检查文件是否存在：/etc/default/grub')
-            else:
-                system('grub2-mkconfig -o /boot/grub2/grub.cfg')
-                print('io调度器持久化修改重启机器后生效')
+        if now_scheduler == 'noop' or now_scheduler == 'mq-deadline' or now_scheduler == 'deadline':
+            # 检查是否持久化修改了
+            elevator = os.popen('grep elevator= /etc/default/grub').readline()
+            if elevator is None:
+                # io调度算法已修改但为持久化
+                cmd_add_scheduler = "sed -i 's#biosdevname=0#biosdevname=0 elevator=deadline'"
+                self.update_grub(cmd_add_scheduler)
         else:
-            print(f'当前io调度算法为:{now_scheduler}。无需修改')
+            # 临时修改io调度算法，立即生效
+            cmd_update_scheduler = f'echo mq-deadline > /sys/block/{disk}/queue/scheduler'
+            echo_scheduler = cmd_util.exec_cmd(cmd_update_scheduler)
+            if echo_scheduler is not None:
+                self.log.error('请检查文件是否存在：/etc/default/grub')
+            cmd_add_scheduler = "sed -i 's#biosdevname=0#biosdevname=0 elevator=deadline'"
+            self.update_grub(cmd_add_scheduler)
+
+    def update_grub(self, cmd):
+        sed_grub_message = cmd_util.exec_cmd(cmd)
+        if sed_grub_message is not None:
+            self.log.error('请检查文件是否存在：/etc/default/grub')
+        else:
+            os.system('grub2-mkconfig -o /boot/grub2/grub.cfg')
+            print('内核配置文件：/etc/default/grub 修改成功，重启机器生效')
